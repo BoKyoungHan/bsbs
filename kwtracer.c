@@ -65,7 +65,11 @@ void trace_req_completion(struct pt_regs *ctx, struct request *req)
 	return ;
 }
 
+void trace_do_user_space_write(struct pt_regs *ctx, struct page *page, struct iov_iter *i, unsigned long offset, size_t btyes)
+{
 
+
+}
 
 
 
