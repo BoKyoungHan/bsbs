@@ -10,7 +10,9 @@ b= BPF(src_file="kwtracer.c")
 
 b.attach_kprobe(event="blk_mq_start_request",fn_name="trace_req_start")
 b.attach_kprobe(event="blk_account_io_completion",fn_name="trace_req_completion")
-b.attach_kprobe(event="iov_iter_copy_from_user_atomic",fn_name="trace_do_user_space_write")
+#b.attach_kprobe(event="iov_iter_copy_from_user_atomic",fn_name="trace_do_user_space_write")
+#b.attach_kprobe(event="ntfs_copy_from_user_iter",fn_name="trace_do_user_space_write")
+b.attach_kprobe(event="submit_bio", fn_name="trace_submit_bio")
 
 # header
 header = "%-26s %-10s %-10s %-24s %-10s %-16s %-16s %-1s" % ("TS", "PPID", "PID", "COMM", "DISK", "SECTOR", "LEN", "T")

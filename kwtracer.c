@@ -9,6 +9,8 @@
 #include <asm/current.h>
 #include <linux/pid.h>
 #include <linux/uio.h>
+#include <linux/blk_types.h>
+#include <linux/bio.h>
 
 #define READ 0
 #define WRITE 1
@@ -41,13 +43,10 @@ void trace_req_completion(struct pt_regs *ctx, struct request *req)
 	struct gendisk *rq_disk = req->rq_disk;
 	bpf_probe_read(&data.disk_name, sizeof(data.disk_name), rq_disk->disk_name);
 	
-	u64 ppid;
-	u32 pid; // = bpf_get_current_pid_tgid();
 	struct task_struct *task;
 	task = (struct task_struct *)bpf_get_current_task();
-	//pid = task->pid;
-	pid = bpf_get_current_pid_tgid();
-	ppid = task->real_parent->pid;
+	u64 ppid = task->real_parent->pid;
+	u32 pid = bpf_get_current_pid_tgid();
 
 #ifdef REQ_WRITE
         data.rwflag = !!(req->cmd_flags & REQ_WRITE);
@@ -66,11 +65,17 @@ void trace_req_completion(struct pt_regs *ctx, struct request *req)
 	return ;
 }
 
-void trace_do_user_space_write(struct pt_regs *ctx, struct page *page, struct iov_iter *i, unsigned long offset, size_t btyes)
+//void trace_do_user_space_write(struct pt_regs *ctx, struct page *page, struct iov_iter *i, unsigned long offset, size_t btyes)
+void trace_do_user_space_write(struct pt_regs *ctx)
 {
 
 
 }
 
+void trace_submit_bio(struct pt_regs *ctx, struct bio *bio) 
+{
+	u32 pid = bpf_get_current_pid_tgid();
+	struct bio_vec *bi_io_vec = bio->bi_io_vec;
+	struct page *bv_page = bi_io_vec->bv_page;
 
-
+}
