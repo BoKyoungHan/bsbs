@@ -55,7 +55,7 @@ void trace_start(struct pt_regs *ctx, struct request *req) {
 b.attach_kprobe(event="blk_mq_start_request", fn_name="trace_start")
 
 
-trace_file = open ('./trace.log', 'w')
+trace_file = open ('./kwtrace/trace.log', 'w')
 
 def print_event(cpu, data, size):
     event = b["events"].event(data)
@@ -66,17 +66,17 @@ def print_event(cpu, data, size):
         type_of_req = 0
         trace_line = ('%s %s %s %s %s\n' % (event.submit_ts, event.dev_num, event.sector, data_len, type_of_req))
         trace_file.write(trace_line)
-        #print("%s %s %s %s %s" % (event.submit_ts, event.dev_num, event.sector, data_len, type_of_req))
+        print("%s %s %s %s %s" % (event.submit_ts, event.dev_num, event.sector, data_len, type_of_req))
     elif req_op == REQ_OP_READ:
         type_of_req = 1
         trace_line = ('%s %s %s %s %s\n' % (event.submit_ts, event.dev_num, event.sector, data_len, type_of_req))
         trace_file.write(trace_line)
-        #print("%s %s %s %s %s" % (event.submit_ts, event.dev_num, event.sector, data_len, type_of_req))
+        print("%s %s %s %s %s" % (event.submit_ts, event.dev_num, event.sector, data_len, type_of_req))
     elif req_op == REQ_OP_DISCARD:
         type_of_req = 2
         trace_line = ('%s %s %s %s %s\n' % (event.submit_ts, event.dev_num, event.sector, data_len, type_of_req))
         trace_file.write(trace_line)
-        #print("%s %s %s %s %s" % (event.submit_ts, event.dev_num, event.sector, data_len, type_of_req))
+        print("%s %s %s %s %s" % (event.submit_ts, event.dev_num, event.sector, data_len, type_of_req))
 
 
 b["events"].open_perf_buffer(print_event)
