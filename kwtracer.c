@@ -26,6 +26,7 @@ struct data_t {
 	u64 rwflag;
 	u64 ppid;
 	u64 ts;
+	int bi_cnt;
 	u32 pid;
 };
 BPF_PERF_OUTPUT(events);
@@ -82,8 +83,8 @@ void trace_submit_bio(struct pt_regs *ctx, struct bio *bio)
 	struct bio_vec *bi_io_vec = bio->bi_io_vec;
 	struct page *bv_page = bi_io_vec->bv_page;
 	unsigned short bi_max_vecs = bio->bi_vcnt;
-	atomic_t bi_cnt = bio->__bi_cnt;
+	int bi_cnt_counter = bio->__bi_cnt.counter; 
 	data.bi_max_vecs = bi_max_vecs;
-//	data.bi_cnt = __bi_cnt;
+	data.bi_cnt = bi_cnt_counter; //usage counter
 	events.perf_submit(ctx, &data, sizeof(data));
 }
