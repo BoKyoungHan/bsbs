@@ -12,7 +12,7 @@ b.attach_kprobe(event="blk_mq_start_request",fn_name="trace_req_start")
 b.attach_kprobe(event="blk_account_io_completion",fn_name="trace_req_completion")
 
 # header
-header = "%-10s %-10s %-10s %-24s %-10s %-16s %-16s %-1s" % ("TS", "PPID", "PID", "COMM", "DISK", "SECTOR", "LEN", "T")
+header = "%-26s %-10s %-10s %-24s %-10s %-16s %-16s %-1s" % ("TS", "PPID", "PID", "COMM", "DISK", "SECTOR", "LEN", "T")
 rwflag = ""
 trace_file = open('./diskIO_trace.log', 'w')
 #trace_file.write(header)
@@ -28,7 +28,7 @@ def print_event(cpu,data,size):
 
         length = event.len >> 9
         if event.disk_name != "":
-            trace_line = "%-10s %-10s %-10s %-24s %-10s %-16s %-16s %-1s" % (event.ts, event.ppid, event.pid, event.comm, event.disk_name, event.sector, length, rwflag)
+            trace_line = "%-26s %-10s %-10s %-24s %-10s %-16s %-16s %-1s" % (event.ts, event.ppid, event.pid, event.comm, event.disk_name, event.sector, length, rwflag)
             #trace_file.write(trace_line)
             print(trace_line)
 
