@@ -11,6 +11,7 @@
 #include <linux/uio.h>
 #include <linux/blk_types.h>
 #include <linux/bio.h>
+#include <linux/types.h>
 
 #define READ 0
 #define WRITE 1
@@ -19,6 +20,7 @@
 struct data_t {
 	char comm[TASK_COMM_LEN];
 	char disk_name[DISK_NAME_LEN];
+	unsigned short bi_max_vecs;
 	u64 sector;
 	u64 len;
 	u64 rwflag;
@@ -66,16 +68,22 @@ void trace_req_completion(struct pt_regs *ctx, struct request *req)
 }
 
 //void trace_do_user_space_write(struct pt_regs *ctx, struct page *page, struct iov_iter *i, unsigned long offset, size_t btyes)
-void trace_do_user_space_write(struct pt_regs *ctx)
+int trace_do_user_space_write(struct pt_regs *ctx)
 {
-
+	return 0;
 
 }
 
 void trace_submit_bio(struct pt_regs *ctx, struct bio *bio) 
 {
+	struct data_t data = {};
+	
 	u32 pid = bpf_get_current_pid_tgid();
 	struct bio_vec *bi_io_vec = bio->bi_io_vec;
 	struct page *bv_page = bi_io_vec->bv_page;
-
+	unsigned short bi_max_vecs = bio->bi_vcnt;
+	atomic_t bi_cnt = bio->__bi_cnt;
+	data.bi_max_vecs = bi_max_vecs;
+//	data.bi_cnt = __bi_cnt;
+	events.perf_submit(ctx, &data, sizeof(data));
 }
