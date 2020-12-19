@@ -8,6 +8,7 @@
 #include <linux/sched.h>
 #include <asm/current.h>
 #include <linux/pid.h>
+#include <linux/uio.h>
 
 #define READ 0
 #define WRITE 1
