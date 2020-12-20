@@ -1,0 +1,131 @@
+#!/usr/bin/python3
+# Intel 8089 Disassembler
+# Copyright 2016 Eric Smith <spacewar@gmail.com>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of version 3 of the GNU General Public License
+# as published by the Free Software Foundation.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import argparse
+import sys
+
+from i89 import I89
+from intelhex import IntelHex
+from memory import Memory
+
+def pass1(i89, fw, base, length):
+    symtab_by_value = {}
+    pc = base
+    while pc < base + length - 2:
+        (inst_length, dis, operands, fields) = i89.disassemble_inst(fw, pc, disassemble_operands = False)
+        if 'j' in fields:
+            symtab_by_value[fields['j']] = 'x%04x' % fields['j']
+        pc += inst_length
+    return symtab_by_value
+
+def pass2(i89, fw, base, length,
+          symtab_by_value, show_obj = False, output_file = sys.stdout):
+    pc = base
+    while pc < base + length - 2:
+        s = ''
+        (inst_length, dis, operands, fields) = i89.disassemble_inst(fw, pc, symtab_by_value)
+        if show_obj:
+            s += '%04x: '% pc
+            for i in range(6):
+                if (i < inst_length):
+                    s += '%02x ' % fw[pc + i]
+                else:
+                    s += '   '
+        if pc in symtab_by_value:
+            label = symtab_by_value[pc] + ':'
+        else:
+            label = ''
+        s += '%-8s%-8s%s' % (label, dis, operands)
+        pc += inst_length
+        output_file.write(s + '\n')
+    
+
+def disassemble(i89, fw, show_obj = False, output_file = sys.stdout,
+                base = 0, length = 0x10000):
+    symtab_by_value = pass1(i89, fw, base, length)
+    #symtab_by_name = { v: k for k, v in symtab_by_value.items() }
+    pass2(i89, fw, base, length, symtab_by_value, show_obj = show_obj, output_file = output_file)
+
+
+def read_object(input, inputformat = 'binary', base = 0, length = None):
+    if inputformat == 'binary':
+        meml = [Memory(data = f.read()) for f in args.input]
+    elif inputformat == 'hex':
+        meml = [IntelHex().read(f, load_addr = 0) for f in args.input]
+    else:
+        raise Exception('unknown input format')
+
+    if len(meml) == 1:
+        mem = meml[0]
+    else:
+        mem = Memory.interleave(meml)
+               
+    return mem
+
+
+# type function for argparse to support numeric arguments in hexadecimal
+# ("0x" prefix) as well as decimal (no prefix)
+def auto_int(x):
+    return int(x, 0)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description = 'Disassembler for Intel 8089 I/O processor')
+
+    parser.add_argument('-l', '--listing', action='store_true',
+                        help = 'generate output in listing format')
+
+    parser.add_argument('-b', '--base', type = auto_int, default = 0,
+                        help = 'base address of image (default: %(default)x)')
+    parser.add_argument('--length', type = auto_int,
+                        help = 'length of image')
+
+    fmt_group = parser.add_mutually_exclusive_group()
+    fmt_group.add_argument('--binary', action='store_const',
+                           dest='inputformat',
+                           const='binary',
+                           help = 'input file format is raw binary (default)')
+    fmt_group.add_argument('--hex', action='store_const',
+                           dest='inputformat',
+                           const='hex',
+                           help = 'input file format is Intel hex')
+    
+    parser.add_argument('input', type = argparse.FileType('rb'),
+                        nargs = '+',
+                        help = 'input file(s), multiple files will be interleaved (useful for separate even, odd files)')
+
+    parser.add_argument('-o', '--output', type=argparse.FileType('w'),
+                        default = sys.stdout,
+                        help = 'disassembly output file')
+
+    args = parser.parse_args()
+    #print(args)
+
+    i89 = I89()
+
+    if args.inputformat is None:
+        args.inputformat = 'binary'
+
+    memory = read_object(args.input, args.inputformat, base = args.base, length = args.length)
+    if args.length is None:
+        args.length = len(memory)
+
+    if args.base != 0:
+        memory = memory(data = bytearray(args.base) + memory[:])
+
+    disassemble(i89, memory, show_obj = args.listing, output_file = args.output,
+                base = args.base,
+                length = args.length)

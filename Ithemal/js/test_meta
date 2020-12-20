@@ -1,0 +1,9 @@
+deregister_tm_clones	48	0
+register_tm_clones	112	0
+__do_global_dtors_aux	192	0
+frame_dummy	256	0
+__libc_csu_fini	496	2
+kernel	266	60
+__libc_csu_init	384	101
+_start	0	43
+main	326	51

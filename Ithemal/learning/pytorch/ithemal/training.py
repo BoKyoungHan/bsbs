@@ -2,6 +2,7 @@
 
 import sys
 import os
+import time
 sys.path.append(os.path.join(os.environ['ITHEMAL_HOME'], 'learning', 'pytorch'))
 
 import models.graph_models as md
@@ -289,6 +290,17 @@ def run_training_coordinator(base_params, train_params):
     loss_reporter = LossReporter(expt, len(data.train), trainer)
 
     for epoch_no in range(train_params.epochs):
+
+        # js: start epoch
+        outpath = "./os/time_epoch"
+        fw = open(outpath,'a')
+        out = "pid, ecpoch, time\n"
+        fw.write(out)
+        start = time.time()
+        pid = os.getpid()
+        out="%d, %d, %f, 0\n"%(pid,epoch_no,start)
+        fw.write(out)
+
         if train_params.decay_trainers:
             n_trainers = max(1, train_params.trainers - epoch_no)
         else:
@@ -350,6 +362,13 @@ def run_training_coordinator(base_params, train_params):
 
             loss_reporter.report()
 
+        #js: epoch end
+        end = time.time()
+        out = "%d, %f, %f\n"%(epoch_no,end,end-start)
+        fw.write(out)
+        fw.close()
+
+        
         if all_in_state(TrainerState.DEAD):
             break
 

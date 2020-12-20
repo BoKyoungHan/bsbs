@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 sys.path.append(os.path.join(os.environ['ITHEMAL_HOME'], 'learning', 'pytorch'))
 
 import torch
@@ -226,12 +227,14 @@ class Train():
         # type: (Optional[Callable[[messages.Message], None]]) -> None
 
 	# js: start train
-	outpath = "./time_%s"%(self.rank)
-	fw = open(outpath,'a')
-	out="rank, time\n"
-	fw.write(out)
+	outpath = "/home/ithemal/ithemal/learning/pytorch/models/os/time_%s"%(self.rank)
+	fw1 = open(outpath,'a')
+	out="pid, rank, time\n"
+	fw1.write(out)
 	start = time.time()
-	out="%d, %f, 0\n"%(self.rank,start)
+        pid = os.getpid() 
+	out="%d, %d, %f, 0\n"%(pid,self.rank,start)
+        fw1.write(out)
 
         (partition_start, partition_end) = self.partition
 
@@ -319,7 +322,8 @@ class Train():
 	#js: end time
 	end = time.time()
 	out = "%d, %f, %f\n"%(self.rank, end, end-start)
-	fw.close()
+        fw1.write(out)
+	fw1.close()
 
     def set_lr(self, lr):
         # type: (float) -> None
