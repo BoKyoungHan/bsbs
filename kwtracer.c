@@ -22,16 +22,11 @@ struct data_t {
 	char comm[TASK_COMM_LEN];
 	char disk_name[DISK_NAME_LEN];
 	unsigned short bi_max_vecs;
-	u64 sector;
-	u64 len;
-	u64 rwflag;
 	u64 ppid;
 	u64 ts;
-	int bi_cnt;
 	unsigned long wb_idx; // writeback start offset
 	unsigned long vm_start;
 	u32 pid;
-	int last_cpupid; // last_cpupid_not_in_page_flags
 };
 
 struct writer_t {
@@ -91,10 +86,6 @@ int trace_do_user_space_write(struct pt_regs *ctx, struct page *page, struct iov
 	/* the host that owns the page.
 	if address_space is associated with a swapper, the host field is NULL. */
 	struct inode * host = mapping->host;
-	
-	// last CPU PID notated in page flages
-	//int last_cpupid = page->_last_cpupid;
-
 
 	struct mm_struct *pt_mm = page->pt_mm;
 	struct vm_area_struct *mmap = page->pt_mm->mmap;
@@ -105,13 +96,12 @@ int trace_do_user_space_write(struct pt_regs *ctx, struct page *page, struct iov
 	bpf_get_current_comm(&writer.comm, sizeof(writer.comm));
 	page_to_writer_info.update(&vm_start, &writer);
 		
-	//if (host != NULL){
+	if (host != NULL){
 		//data.wb_idx = wb_idx;
-		//data.last_cpupid = last_cpupid;
 		data.vm_start = vm_start;
 		bpf_probe_read_str(data.comm, sizeof(data.comm), writer.comm);
 		events.perf_submit(ctx, &data, sizeof(data));
-	//}
+	}
 	
 	return 0;
 }
