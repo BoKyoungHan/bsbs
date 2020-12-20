@@ -36,7 +36,7 @@ struct writer_t {
 };
 
 
-BPF_HASH(page_to_writer_info, unsigned long, struct writer_t);
+BPF_HASH(page_to_writer_info, u64, struct writer_t);
 
 BPF_PERF_OUTPUT(events);
 void trace_req_start(struct pt_regs *ctx, struct request *req)
