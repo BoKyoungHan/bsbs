@@ -10,7 +10,7 @@ fr = open(sys.argv[1], 'r')
 fw = open('counted_' + sys.argv[1], 'w')
 
 
-page_bag = []
+page_bag = {}
 
 while True:
 	rline = fr.readline()
@@ -25,8 +25,8 @@ while True:
 
 fr.close()
 
-for key, value in page_bag:
-	wline = "%d,%d,\n" % (key, value)
+for key in page_bag.keys():
+	wline = "%d,%d,\n" % (key, page_bag[key])
 	fw.write(wline)
 
 fw.close()
