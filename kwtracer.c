@@ -19,8 +19,9 @@
 
 #pragma pack(4)
 struct data_t {
-	u64 address;
 	char comm[TASK_COMM_LEN];
+	u64 address;
+	u64 counter;
 	u32 pid;
 };
 
@@ -29,46 +30,14 @@ struct writer_t {
 	u32 pid;
 };
 
+struct counter_t {
+	u64 counter;
+};
 
 BPF_HASH(page_to_writer_info, u64, struct writer_t);
-BPF_HASH(victim_writer_info, int, struct writer_t);
+BPF_HASH(counter_info, int, struct counter_t); 
 
 BPF_PERF_OUTPUT(events);
-/*void trace_req_start(struct pt_regs *ctx, struct request *req)
-{
-	struct data_t data = {};
-	
-	events.perf_submit(ctx,&data,sizeof(data));
-        return ;
-}
-
-void trace_req_completion(struct pt_regs *ctx, struct request *req)
-{
-	struct data_t data = {};
-	struct gendisk *rq_disk = req->rq_disk;
-	bpf_probe_read(&data.disk_name, sizeof(data.disk_name), rq_disk->disk_name);
-	
-	struct task_struct *task;
-	task = (struct task_struct *)bpf_get_current_task();
-	u64 ppid = task->real_parent->pid;
-	u32 pid = bpf_get_current_pid_tgid();
-
-#ifdef REQ_WRITE
-        data.rwflag = !!(req->cmd_flags & REQ_WRITE);
-#elif defined(REQ_OP_SHIFT)
-        data.rwflag = !!((req->cmd_flags >> REQ_OP_SHIFT) == REQ_OP_WRITE);
-#else
-        data.rwflag = !!((req->cmd_flags & REQ_OP_MASK) == REQ_OP_WRITE);
-#endif
-	data.sector = req->__sector;
-	data.len = req->__data_len;
-	data.pid = pid;
-	data.ppid = ppid;
-	data.ts = bpf_ktime_get_ns();
-	bpf_get_current_comm(&data.comm, sizeof(data.comm));
-	events.perf_submit(ctx, &data, sizeof(data));
-	return ;
-}*/
 
 int trace_do_user_space_write(struct pt_regs *ctx, struct page *page, struct iov_iter *i, unsigned long offset, size_t btyes)
 {
@@ -90,7 +59,7 @@ int trace_do_user_space_write(struct pt_regs *ctx, struct page *page, struct iov
 	u64 address = (u64)page;
 	
 	data.address = address;
-	events.perf_submit(ctx, &data, sizeof(data));
+	//events.perf_submit(ctx, &data, sizeof(data));
 
 	/* update hashmap */
 	page_to_writer_info.update(&address, &writer);
@@ -106,13 +75,28 @@ void trace_submit_bio(struct pt_regs *ctx, struct bio *bio)
 	unsigned short bi_max_vecs = bio->bi_vcnt;
 	int bi_cnt_counter = bio->__bi_cnt.counter; 
 	
+	bpf_get_current_comm(&data.comm, sizeof(data.comm));
+	
 	/* lookup victim's writer */
 	u64 address = (u64)bv_page;
 	struct writer_t *writer = page_to_writer_info.lookup(&address);
-		
+	if (writer == NULL) return;
 	
-	//bpf_probe_read_str(data.comm, sizeof(data.comm), writer->comm);
+	int key = 1;
+	struct counter_t *counter = counter_info.lookup(&key);
+	if (counter == NULL) {
+		struct counter_t initial_counter = {};
+		initial_counter.counter = 1;
+		counter_info.update(&key, &initial_counter);
+		return;
+	}
+	else {
+		counter->counter += 1;
+	}
+
+	bpf_probe_read_str(data.comm, sizeof(data.comm), writer->comm);
 	data.pid = writer->pid;
+	data.counter = counter->counter;
 	events.perf_submit(ctx, &data, sizeof(data));
 	return ;
 }

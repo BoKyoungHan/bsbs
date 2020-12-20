@@ -23,17 +23,10 @@ print(header)
 
 def print_event(cpu,data,size):
         event = b["events"].event(data)
-
-        trace_line = "%-10s\n" % (event.pid)
-        print(trace_line)
-        
 		#trace_line = "%-10s %-10s %-10s\n" % (event.pid, event.comm, event.address)
         #print(trace_line)
-#        if event.rwflag == 1:
-#            rwflag = "W"
-#        else:
-#            rwflag = "R"
-
+        trace_line = "%-10s %-10s\n" % (event.pid, event.counter)
+        print(trace_line)
  #       trace_line = "%-10s %-10s %-10s\n" % (event.pid, event.comm, event.address)
         #trace_line = "%-10s %-10s %-10s %-10s %-10s\n" % (event.bi_max_vecs, event.bi_cnt, event.wb_idx, event.comm, event.vm_start);
         #if event.disk_name != "":
