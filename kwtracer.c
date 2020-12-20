@@ -43,7 +43,6 @@ int trace_do_user_space_write(struct pt_regs *ctx, struct page *page, struct iov
 {
 	/* init data */
 	struct data_t data = {};
-	//data.pid = bpf_get_current_pid_tgid();
 	struct task_struct *task;
 	task = (struct task_struct *)bpf_get_current_task();
 	data.pid = task->pid;
@@ -59,7 +58,6 @@ int trace_do_user_space_write(struct pt_regs *ctx, struct page *page, struct iov
 	u64 address = (u64)page;
 	
 	data.address = address;
-	//events.perf_submit(ctx, &data, sizeof(data));
 
 	/* update hashmap */
 	page_to_writer_info.update(&address, &writer);
