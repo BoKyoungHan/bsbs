@@ -33,6 +33,16 @@ struct data_t {
 	u32 pid;
 	int last_cpupid; // last_cpupid_not_in_page_flags
 };
+
+struct writer_t {
+	// TODO: core info
+	char comm[TASK_COMM_LEN];
+	u32 pid;
+};
+
+
+BPF_HASH(page_to_writer_info, unsigned long, struct writer_t);
+
 BPF_PERF_OUTPUT(events);
 
 void trace_req_start(struct pt_regs *ctx, struct request *req)
@@ -92,7 +102,10 @@ int trace_do_user_space_write(struct pt_regs *ctx, struct page *page, struct iov
 	struct vm_area_struct *mmap = page->pt_mm->mmap;
 	unsigned long vm_start = mmap->vm_start;
 
-
+	struct writer_t writer= {};
+	page_to_writer_info.update(&vm_start, &writer);
+		
+	
 	if (host != NULL){
 		data.wb_idx = wb_idx;
 		//data.last_cpupid = last_cpupid;
