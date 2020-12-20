@@ -44,6 +44,13 @@ struct writer_t {
 BPF_HASH(page_to_writer_info, unsigned long, struct writer_t);
 
 BPF_PERF_OUTPUT(events);
+void trace_req_start(struct pt_regs *ctx, struct request *req)
+{
+	struct data_t data = {};
+	
+	events.perf_submit(ctx,&data,sizeof(data));
+        return ;
+}
 
 void trace_req_completion(struct pt_regs *ctx, struct request *req)
 {
@@ -101,8 +108,9 @@ int trace_do_user_space_write(struct pt_regs *ctx, struct page *page, struct iov
 	//if (host != NULL){
 		//data.wb_idx = wb_idx;
 		//data.last_cpupid = last_cpupid;
-		//data.vm_start = vm_start;
-		//events.perf_submit(ctx, &data, sizeof(data));
+		data.vm_start = vm_start;
+		bpf_probe_read_str(data.comm, sizeof(data.comm), writer.comm);
+		events.perf_submit(ctx, &data, sizeof(data));
 	//}
 	
 	return 0;
@@ -117,15 +125,18 @@ void trace_submit_bio(struct pt_regs *ctx, struct bio *bio)
 	unsigned short bi_max_vecs = bio->bi_vcnt;
 	int bi_cnt_counter = bio->__bi_cnt.counter; 
 	
-	unsigned long vm_start = bv_page->pt_mm->mmap->vm_start;
+	//unsigned long vm_start = bv_page->pt_mm->mmap->vm_start;
 	
-	struct writer_t *writer = page_to_writer_info.lookup(&vm_start);
+	//struct writer_t *writer = page_to_writer_info.lookup(&vm_start);
 
 	//data.bi_max_vecs = bi_max_vecs;
 	//data.bi_cnt = bi_cnt_counter; // usage counter
-	data.vm_start = vm_start;
-	data.comm = writer.comm;
-	data.pid = writer.pid;
-	events.perf_submit(ctx, &data, sizeof(data));
+	
+
+	//data.vm_start = vm_start;
+	//bpf_probe_read_str(data.comm, sizeof(data.comm), writer->comm);
+	//data.comm = writer->comm;
+	//data.pid = writer->pid;
+	//events.perf_submit(ctx, &data, sizeof(data));
 	return ;
 }
