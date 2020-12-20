@@ -27,6 +27,7 @@ struct data_t {
 	u64 ppid;
 	u64 ts;
 	int bi_cnt;
+	unsigned long wb_idx; // writeback start offset
 	u32 pid;
 };
 BPF_PERF_OUTPUT(events);
@@ -69,10 +70,21 @@ void trace_req_completion(struct pt_regs *ctx, struct request *req)
 }
 
 int trace_do_user_space_write(struct pt_regs *ctx, struct page *page, struct iov_iter *i, unsigned long offset, size_t btyes)
-//int trace_do_user_space_write(struct pt_regs *ctx)
 {
-	return 0;
+	struct data_t data = {};
+	struct address_space *mapping = page->mapping;
 
+	// writeback start offset
+	unsigned long wb_idx = mapping->writeback_index;
+	
+	// The host that owns the page.
+	// If address_space is associated with a swapper, the host field is NULL.
+	struct inode * host = mapping->host;
+
+	data.wb_idx = wb_idx;
+	events.perf_submit(ctx, &data, sizeof(data));
+
+	return 0;
 }
 
 void trace_submit_bio(struct pt_regs *ctx, struct bio *bio) 
@@ -85,6 +97,6 @@ void trace_submit_bio(struct pt_regs *ctx, struct bio *bio)
 	unsigned short bi_max_vecs = bio->bi_vcnt;
 	int bi_cnt_counter = bio->__bi_cnt.counter; 
 	data.bi_max_vecs = bi_max_vecs;
-	data.bi_cnt = bi_cnt_counter; //usage counter
+	data.bi_cnt = bi_cnt_counter; // usage counter
 	events.perf_submit(ctx, &data, sizeof(data));
 }
