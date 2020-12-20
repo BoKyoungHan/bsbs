@@ -30,7 +30,8 @@ def print_event(cpu,data,size):
 
         length = event.len >> 9
         if event.disk_name != "":
-            trace_line = "%-10s %-10s %-10s" % (event.bi_max_vecs, event.bi_cnt, event.wb_idx);
+            trace_line = "%-10s %-10s %-10s %-10s %-10s" % (event.bi_max_vecs, event.bi_cnt, event.wb_idx, event.comm, event.vm_start);
+			
 			#trace_line = "%-26s %-10s %-10s %-24s %-10s %-16s %-16s %-1s" % (event.ts, event.ppid, event.pid, event.comm, event.disk_name, event.sector, length, rwflag)
             #trace_file.write(trace_line)
             print(trace_line)
