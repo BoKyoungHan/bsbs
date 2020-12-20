@@ -14,7 +14,7 @@ b.attach_kprobe(event="submit_bio", fn_name="trace_submit_bio")
 # header
 header = "%-26s %-10s %-10s %-24s %-10s %-16s %-16s %-1s" % ("TS", "PPID", "PID", "COMM", "DISK", "SECTOR", "LEN", "T")
 rwflag = ""
-trace_file = open('./diskIO_trace.log', 'w')
+trace_file = open('./kwtrace/trace.log', 'w')
 #trace_file.write(header)
 print(header)
 
@@ -27,12 +27,14 @@ def print_event(cpu,data,size):
             rwflag = "R"
 
         length = event.len >> 9
-        if event.disk_name != "":
-            trace_line = "%-10s %-10s %-10s %-10s %-10s" % (event.bi_max_vecs, event.bi_cnt, event.wb_idx, event.comm, event.vm_start);
+        trace_line = "%-10s %-10s %-10s %-10s %-10s\n" % (event.bi_max_vecs, event.bi_cnt, event.wb_idx, event.comm, event.vm_start);
+        print(trace_line)
+        #if event.disk_name != "":
+            #trace_line = "%-10s %-10s %-10s %-10s %-10s\n" % (event.bi_max_vecs, event.bi_cnt, event.wb_idx, event.comm, event.vm_start);
 			
 			#trace_line = "%-26s %-10s %-10s %-24s %-10s %-16s %-16s %-1s" % (event.ts, event.ppid, event.pid, event.comm, event.disk_name, event.sector, length, rwflag)
             #trace_file.write(trace_line)
-            print(trace_line)
+            #print(trace_line)
 
 b["events"].open_perf_buffer(print_event)
 while 1:
