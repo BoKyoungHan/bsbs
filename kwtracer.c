@@ -45,15 +45,6 @@ BPF_HASH(page_to_writer_info, unsigned long, struct writer_t);
 
 BPF_PERF_OUTPUT(events);
 
-void trace_req_start(struct pt_regs *ctx, struct request *req)
-{
-	struct data_t data = {};
-	
-	events.perf_submit(ctx,&data,sizeof(data));
-        return ;
-}
-
-
 void trace_req_completion(struct pt_regs *ctx, struct request *req)
 {
 	struct data_t data = {};
@@ -102,8 +93,10 @@ int trace_do_user_space_write(struct pt_regs *ctx, struct page *page, struct iov
 	struct vm_area_struct *mmap = page->pt_mm->mmap;
 	unsigned long vm_start = mmap->vm_start;
 
-	struct writer_t writer= {};
+	struct writer_t writer = {};
+	writer.pid = bpf_get_current_pid_tgid();
 	page_to_writer_info.update(&vm_start, &writer);
+	bpf_get_current_comm(&writer.comm, sizeof(writer.comm));
 		
 	
 	if (host != NULL){
@@ -125,7 +118,10 @@ void trace_submit_bio(struct pt_regs *ctx, struct bio *bio)
 	struct page *bv_page = bi_io_vec->bv_page;
 	unsigned short bi_max_vecs = bio->bi_vcnt;
 	int bi_cnt_counter = bio->__bi_cnt.counter; 
+	
+
 	data.bi_max_vecs = bi_max_vecs;
 	data.bi_cnt = bi_cnt_counter; // usage counter
 	events.perf_submit(ctx, &data, sizeof(data));
+	return ;
 }
