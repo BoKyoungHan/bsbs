@@ -21,8 +21,6 @@
 struct data_t {
 	u64 address;
 	char comm[TASK_COMM_LEN];
-	char disk_name[DISK_NAME_LEN];
-	unsigned short bi_max_vecs;
 	u32 pid;
 };
 
@@ -33,6 +31,7 @@ struct writer_t {
 
 
 BPF_HASH(page_to_writer_info, u64, struct writer_t);
+BPF_HASH(victim_writer_info, int, struct writer_t);
 
 BPF_PERF_OUTPUT(events);
 /*void trace_req_start(struct pt_regs *ctx, struct request *req)
@@ -91,7 +90,7 @@ int trace_do_user_space_write(struct pt_regs *ctx, struct page *page, struct iov
 	u64 address = (u64)page;
 	
 	data.address = address;
-	//events.perf_submit(ctx, &data, sizeof(data));
+	events.perf_submit(ctx, &data, sizeof(data));
 
 	/* update hashmap */
 	page_to_writer_info.update(&address, &writer);
@@ -101,6 +100,7 @@ int trace_do_user_space_write(struct pt_regs *ctx, struct page *page, struct iov
 
 void trace_submit_bio(struct pt_regs *ctx, struct bio *bio) 
 {
+	struct data_t data = {};
 	struct bio_vec *bi_io_vec = bio->bi_io_vec;
 	struct page *bv_page = bi_io_vec->bv_page;
 	unsigned short bi_max_vecs = bio->bi_vcnt;
@@ -109,15 +109,10 @@ void trace_submit_bio(struct pt_regs *ctx, struct bio *bio)
 	/* lookup victim's writer */
 	u64 address = (u64)bv_page;
 	struct writer_t *writer = page_to_writer_info.lookup(&address);
-
-	//data.bi_max_vecs = bi_max_vecs;
-	//data.bi_cnt = bi_cnt_counter; // usage counter
+		
 	
-
-	//data.vm_start = vm_start;
 	//bpf_probe_read_str(data.comm, sizeof(data.comm), writer->comm);
-	//data.comm = writer->comm;
-	//data.pid = writer->pid;
+	data.pid = writer->pid;
 	events.perf_submit(ctx, &data, sizeof(data));
 	return ;
 }
