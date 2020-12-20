@@ -19,18 +19,14 @@
 
 #pragma pack(4)
 struct data_t {
+	u64 address;
 	char comm[TASK_COMM_LEN];
 	char disk_name[DISK_NAME_LEN];
 	unsigned short bi_max_vecs;
-	u64 ppid;
-	u64 ts;
-	unsigned long wb_idx; // writeback start offset
-	unsigned long vm_start;
 	u32 pid;
 };
 
 struct writer_t {
-	// TODO: core info
 	char comm[TASK_COMM_LEN];
 	u32 pid;
 };
@@ -39,7 +35,7 @@ struct writer_t {
 BPF_HASH(page_to_writer_info, u64, struct writer_t);
 
 BPF_PERF_OUTPUT(events);
-void trace_req_start(struct pt_regs *ctx, struct request *req)
+/*void trace_req_start(struct pt_regs *ctx, struct request *req)
 {
 	struct data_t data = {};
 	
@@ -73,51 +69,46 @@ void trace_req_completion(struct pt_regs *ctx, struct request *req)
 	bpf_get_current_comm(&data.comm, sizeof(data.comm));
 	events.perf_submit(ctx, &data, sizeof(data));
 	return ;
-}
+}*/
 
 int trace_do_user_space_write(struct pt_regs *ctx, struct page *page, struct iov_iter *i, unsigned long offset, size_t btyes)
 {
+	/* init data */
 	struct data_t data = {};
-	struct address_space *mapping = page->mapping;
-
-	/* writeback start offset */
-	unsigned long wb_idx = mapping->writeback_index;
+	//data.pid = bpf_get_current_pid_tgid();
+	struct task_struct *task;
+	task = (struct task_struct *)bpf_get_current_task();
+	data.pid = task->pid;
 	
-	/* the host that owns the page.
-	if address_space is associated with a swapper, the host field is NULL. */
-	struct inode * host = mapping->host;
-
-	struct mm_struct *pt_mm = page->pt_mm;
-	struct vm_area_struct *mmap = page->pt_mm->mmap;
-	unsigned long vm_start = mmap->vm_start;
-
+	bpf_get_current_comm(&data.comm, sizeof(data.comm));
+	
+	/* get writer info */
 	struct writer_t writer = {};
 	writer.pid = bpf_get_current_pid_tgid();
 	bpf_get_current_comm(&writer.comm, sizeof(writer.comm));
-	page_to_writer_info.update(&vm_start, &writer);
-		
-	if (host != NULL){
-		//data.wb_idx = wb_idx;
-		data.vm_start = vm_start;
-		bpf_probe_read_str(data.comm, sizeof(data.comm), writer.comm);
-		events.perf_submit(ctx, &data, sizeof(data));
-	}
 	
+	/* get physical page address */
+	u64 address = (u64)page;
+	
+	data.address = address;
+	//events.perf_submit(ctx, &data, sizeof(data));
+
+	/* update hashmap */
+	page_to_writer_info.update(&address, &writer);
+		
 	return 0;
 }
 
 void trace_submit_bio(struct pt_regs *ctx, struct bio *bio) 
 {
-	struct data_t data = {};
-	
 	struct bio_vec *bi_io_vec = bio->bi_io_vec;
 	struct page *bv_page = bi_io_vec->bv_page;
 	unsigned short bi_max_vecs = bio->bi_vcnt;
 	int bi_cnt_counter = bio->__bi_cnt.counter; 
 	
-	//unsigned long vm_start = bv_page->pt_mm->mmap->vm_start;
-	
-	//struct writer_t *writer = page_to_writer_info.lookup(&vm_start);
+	/* lookup victim's writer */
+	u64 address = (u64)bv_page;
+	struct writer_t *writer = page_to_writer_info.lookup(&address);
 
 	//data.bi_max_vecs = bi_max_vecs;
 	//data.bi_cnt = bi_cnt_counter; // usage counter
@@ -127,6 +118,6 @@ void trace_submit_bio(struct pt_regs *ctx, struct bio *bio)
 	//bpf_probe_read_str(data.comm, sizeof(data.comm), writer->comm);
 	//data.comm = writer->comm;
 	//data.pid = writer->pid;
-	//events.perf_submit(ctx, &data, sizeof(data));
+	events.perf_submit(ctx, &data, sizeof(data));
 	return ;
 }
