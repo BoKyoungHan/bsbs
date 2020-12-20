@@ -1,7 +1,7 @@
 ## Advanced Operating Systems (Fall 2020)
 ---
 ### Final Project
-Development of kworker thread monitoring tool
+Development of kworker Thread Monitoring Tool for Improving Multi-core Proesssing Performance
 
 ### Kernel version
 5.4.59
