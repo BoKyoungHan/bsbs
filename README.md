@@ -6,7 +6,7 @@ Development of kworker Thread Monitoring Tool for Improving Multi-core Proesssin
 ### Kernel version
 5.4.59
 
-### Install build dependecnies
+### Install build dependencies
 * bcc
 
 ### How to run
