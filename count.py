@@ -4,10 +4,8 @@ if len(sys.argv) != 2:
 	print("Usage: python count.py [input_file]")
 	sys.exit()
 
-
-
 fr = open(sys.argv[1], 'r')
-fw = open('counted_' + sys.argv[1], 'w')
+fw = open('counted_' + sys.argv[1].replace('.log', '').replace('./', '') + '.csv', 'w')
 
 
 page_bag = {}

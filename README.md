@@ -8,3 +8,10 @@ Development of kworker Thread Monitoring Tool for Improving Multi-core Proesssin
 
 ### Install build dependecnies
 * bcc
+
+### How to run
+$ sudo python kwtracer.py
+
+### File descriptions
+* **kwtracer.py**: BPF tracing tool to monitor 2 tracing point.
+* **count.py**: Recdives the _trace.log_ file as an input and outputs the _counted_trace.csv_ file. 
