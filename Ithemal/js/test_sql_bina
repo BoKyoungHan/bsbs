@@ -1,0 +1,7 @@
+INSERT INTO cpu_desc (name, vendor) VALUES ('unknown', 'unknown');
+SET @arch_id = (SELECT arch_id from cpu_desc WHERE name = 'unknown' AND vendor ='unknown');
+INSERT INTO config (compiler, flags, arch_id) VALUES ('unknown','unknown', @arch_id);
+SET @config_id = (SELECT config_id FROM config WHERE compiler = 'unknown' AND flags = 'unknown' AND arch_id = @arch_id);
+INSERT INTO code (code_raw) VALUES ('');
+INSERT INTO code_metadata (config_id, code_id, module, rel_addr) VALUES (@config_id, LAST_INSERT_ID(), 'test_bin',0);
+UPDATE code_metadata SET code_intel='' WHERE metadata_id=LAST_INSERT_ID();

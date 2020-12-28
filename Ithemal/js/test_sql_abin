@@ -1,0 +1,102 @@
+INSERT INTO cpu_desc (name, vendor) VALUES ('unknown', 'unknown');
+SET @arch_id = (SELECT arch_id from cpu_desc WHERE name = 'unknown' AND vendor ='unknown');
+INSERT INTO config (compiler, flags, arch_id) VALUES ('unknown','unknown', @arch_id);
+SET @config_id = (SELECT config_id FROM config WHERE compiler = 'unknown' AND flags = 'unknown' AND arch_id = @arch_id);
+INSERT INTO code (code_raw) VALUES ('');
+INSERT INTO code_metadata (config_id, code_id, module, rel_addr) VALUES (@config_id, LAST_INSERT_ID(), '../learning/pytorch/examples/a.out',496);
+UPDATE code_metadata SET code_intel='' WHERE metadata_id=LAST_INSERT_ID();
+INSERT INTO code (code_raw) VALUES ('554889e5897decc745f801000000c745fc00000000');
+INSERT INTO code_metadata (config_id, code_id, module, rel_addr) VALUES (@config_id, LAST_INSERT_ID(), '../learning/pytorch/examples/a.out',266);
+UPDATE code_metadata SET code_intel='push   rbp
+mov    rbp, rsp
+mov    dword ptr [rbp-0x14], edi
+mov    dword ptr [rbp-0x08], 0x00000001
+mov    dword ptr [rbp-0x04], 0x00000000
+' WHERE metadata_id=LAST_INSERT_ID();
+INSERT INTO code (code_raw) VALUES ('bb6f0000006467908345f8018345fc018b45fc3b45ec');
+INSERT INTO code_metadata (config_id, code_id, module, rel_addr) VALUES (@config_id, LAST_INSERT_ID(), '../learning/pytorch/examples/a.out',289);
+UPDATE code_metadata SET code_intel='mov    ebx, 0x0000006f
+nop
+add    dword ptr [rbp-0x08], 0x01
+add    dword ptr [rbp-0x04], 0x01
+mov    eax, dword ptr [rbp-0x04]
+cmp    eax, dword ptr [rbp-0x14]
+' WHERE metadata_id=LAST_INSERT_ID();
+INSERT INTO code (code_raw) VALUES ('bbde0000006467908b45f85d');
+INSERT INTO code_metadata (config_id, code_id, module, rel_addr) VALUES (@config_id, LAST_INSERT_ID(), '../learning/pytorch/examples/a.out',313);
+UPDATE code_metadata SET code_intel='mov    ebx, 0x000000de
+nop
+mov    eax, dword ptr [rbp-0x08]
+pop    rbp
+' WHERE metadata_id=LAST_INSERT_ID();
+INSERT INTO code (code_raw) VALUES ('415741564989d74155415455534189fd4989f64c29e54883ec0848c1fd03');
+INSERT INTO code_metadata (config_id, code_id, module, rel_addr) VALUES (@config_id, LAST_INSERT_ID(), '../learning/pytorch/examples/a.out',384);
+UPDATE code_metadata SET code_intel='push   r15
+push   r14
+mov    r15, rdx
+push   r13
+push   r12
+push   rbp
+push   rbx
+mov    r13d, edi
+mov    r14, rsi
+sub    rbp, r12
+sub    rsp, 0x08
+sar    rbp, 0x03
+' WHERE metadata_id=LAST_INSERT_ID();
+INSERT INTO code (code_raw) VALUES ('4885ed');
+INSERT INTO code_metadata (config_id, code_id, module, rel_addr) VALUES (@config_id, LAST_INSERT_ID(), '../learning/pytorch/examples/a.out',433);
+UPDATE code_metadata SET code_intel='test   rbp, rbp
+' WHERE metadata_id=LAST_INSERT_ID();
+INSERT INTO code (code_raw) VALUES ('31db0f1f8400000000004c89fa4c89f64489ef');
+INSERT INTO code_metadata (config_id, code_id, module, rel_addr) VALUES (@config_id, LAST_INSERT_ID(), '../learning/pytorch/examples/a.out',438);
+UPDATE code_metadata SET code_intel='xor    ebx, ebx
+nop    dword ptr [rax+rax+0x00000000]
+mov    rdx, r15
+mov    rsi, r14
+mov    edi, r13d
+' WHERE metadata_id=LAST_INSERT_ID();
+INSERT INTO code (code_raw) VALUES ('4883c3014839dd');
+INSERT INTO code_metadata (config_id, code_id, module, rel_addr) VALUES (@config_id, LAST_INSERT_ID(), '../learning/pytorch/examples/a.out',461);
+UPDATE code_metadata SET code_intel='add    rbx, 0x01
+cmp    rbp, rbx
+' WHERE metadata_id=LAST_INSERT_ID();
+INSERT INTO code (code_raw) VALUES ('4883c4085b5d415c415d415e415f');
+INSERT INTO code_metadata (config_id, code_id, module, rel_addr) VALUES (@config_id, LAST_INSERT_ID(), '../learning/pytorch/examples/a.out',470);
+UPDATE code_metadata SET code_intel='add    rsp, 0x08
+pop    rbx
+pop    rbp
+pop    r12
+pop    r13
+pop    r14
+pop    r15
+' WHERE metadata_id=LAST_INSERT_ID();
+INSERT INTO code (code_raw) VALUES ('31ed4989d15e4889e24883e4f05054');
+INSERT INTO code_metadata (config_id, code_id, module, rel_addr) VALUES (@config_id, LAST_INSERT_ID(), '../learning/pytorch/examples/a.out',0);
+UPDATE code_metadata SET code_intel='xor    ebp, ebp
+mov    r9, rdx
+pop    rsi
+mov    rdx, rsp
+and    rsp, 0xf0
+push   rax
+push   rsp
+' WHERE metadata_id=LAST_INSERT_ID();
+INSERT INTO code (code_raw) VALUES ('554889e54883ec10897dfc488975f0bf0a000000');
+INSERT INTO code_metadata (config_id, code_id, module, rel_addr) VALUES (@config_id, LAST_INSERT_ID(), '../learning/pytorch/examples/a.out',326);
+UPDATE code_metadata SET code_intel='push   rbp
+mov    rbp, rsp
+sub    rsp, 0x10
+mov    dword ptr [rbp-0x04], edi
+mov    qword ptr [rbp-0x10], rsi
+mov    edi, 0x0000000a
+' WHERE metadata_id=LAST_INSERT_ID();
+INSERT INTO code (code_raw) VALUES ('89c6b800000000');
+INSERT INTO code_metadata (config_id, code_id, module, rel_addr) VALUES (@config_id, LAST_INSERT_ID(), '../learning/pytorch/examples/a.out',351);
+UPDATE code_metadata SET code_intel='mov    esi, eax
+mov    eax, 0x00000000
+' WHERE metadata_id=LAST_INSERT_ID();
+INSERT INTO code (code_raw) VALUES ('b800000000c9');
+INSERT INTO code_metadata (config_id, code_id, module, rel_addr) VALUES (@config_id, LAST_INSERT_ID(), '../learning/pytorch/examples/a.out',370);
+UPDATE code_metadata SET code_intel='mov    eax, 0x00000000
+leave
+' WHERE metadata_id=LAST_INSERT_ID();
